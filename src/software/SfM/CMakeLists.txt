@@ -330,15 +330,55 @@ TARGET_LINK_LIBRARIES(openMVG_main_evalQuality
 SET_PROPERTY(TARGET openMVG_main_evalQuality PROPERTY FOLDER OpenMVG/software)
 INSTALL(TARGETS openMVG_main_evalQuality DESTINATION bin/)
 
+###
+# openMVG Sfm gui
+###
+SET(BUILD_SFM_GUI OFF CACHE STRING "Set to ON to build the openmvg GUI")
+IF(BUILD_SFM_GUI)
+set(CMAKE_AUTOMOC ON)
+
+find_package(PCL 1.2 REQUIRED)
+find_package(Qt5 REQUIRED Widgets Core)
+
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
+set(RESOURCE ${CMAKE_CURRENT_LIST_DIR}/SfM_gui.qrc)
+qt5_add_resources(RESOURCE_ADDED ${RESOURCE})
+ADD_EXECUTABLE(openMVG_SfM_gui_ply_preview SfM_gui_ply_preview.cpp)
+ADD_EXECUTABLE(openMVG_SfM_gui_obj_preview SfM_gui_obj_preview.cpp)
+ADD_EXECUTABLE(openMVG_SfM_gui main_SfM_gui.cpp SfM_gui.cpp SfM_gui.h ${RESOURCE_ADDED})
+TARGET_LINK_LIBRARIES(openMVG_SfM_gui_obj_preview ${PCL_LIBRARIES})
+TARGET_LINK_LIBRARIES(openMVG_SfM_gui_ply_preview ${PCL_LIBRARIES})
+TARGET_LINK_LIBRARIES(openMVG_SfM_gui Qt5::Widgets)
+
+set(CMAKE_AUTOMOC OFF)
+SET_PROPERTY(TARGET openMVG_SfM_gui PROPERTY FOLDER OpenMVG/software)
+INSTALL(TARGETS openMVG_SfM_gui DESTINATION bin/)
+
+# SFM specific: Catch PMVS path from CMAKE
+SET(OPENMVG_PMVS_PATH "/usr/lib/PMVS/" CACHE STRING "Path to your PMVS binary folder")
+SET(OPENMVG_PMVS_BIN_PATH "${OPENMVG_PMVS_PATH}/main")
+SET(OPENMVS_BIN_PATH "not-set" CACHE STRING "Path to your openMVS binary folder. not-set will use /home/user/OpenMVS_build/bin/")
+
+ENDIF(BUILD_SFM_GUI)
+
 ##
-# Export tutorial with valid path thanks to a configuration file
+# Export tutorial & SfM workflow file with valid paths thanks to a configuration file
 ##
+
 SET(OPENMVG_SOFTWARE_SFM_SRC_DIR ${CMAKE_CURRENT_LIST_DIR})
 IF(MSVC OR APPLE)
   SET(OPENMVG_SOFTWARE_SFM_BUILD_DIR "${EXECUTABLE_OUTPUT_PATH}/${CMAKE_BUILD_TYPE}")
 ELSE()
   SET(OPENMVG_SOFTWARE_SFM_BUILD_DIR ${EXECUTABLE_OUTPUT_PATH})
 ENDIF()
+
+
+SET(OPENMVG_WORKFLOW_IN_FILE "${CMAKE_CURRENT_LIST_DIR}/workflow.py.in")
+CONFIGURE_FILE(${OPENMVG_WORKFLOW_IN_FILE}
+    "${CMAKE_CURRENT_BINARY_DIR}/workflow.py" @ONLY)
 
 SET(OPENMVG_TUTORIAL_IN_FILE "${CMAKE_CURRENT_LIST_DIR}/tutorial_demo.py.in")
 CONFIGURE_FILE(${OPENMVG_TUTORIAL_IN_FILE}

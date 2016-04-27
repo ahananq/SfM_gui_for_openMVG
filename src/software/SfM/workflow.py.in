@@ -1,0 +1,342 @@
+#!/usr/bin/python
+#! -*- encoding: utf-8 -*-
+
+# A base workflow for OpenMVG
+
+import commands
+import os
+import subprocess
+import sys
+import re
+import Image
+
+# Initialize vars
+total_output = "Workflow finished.";
+user_vars = { };
+dict_field = "";
+
+# Fill dictionary with index and field
+for num in sys.argv[1:]:
+ dict_name = re.findall(r'\w+\ ?(?=\=)',num);
+ dict_field = num.replace(dict_name[0] + "=", "")
+ user_vars.update({dict_name[0] : dict_field});
+
+# Indicate the openMVG binary directory
+OPENMVG_SFM_BIN = "@OPENMVG_SOFTWARE_SFM_BUILD_DIR@"
+OPENMVG_PMVS_BIN = "@OPENMVG_PMVS_BIN_PATH@"
+if "@OPENMVS_BIN_PATH@" == "not-set":
+ OPENMVS_BIN = os.path.join(os.path.expanduser('~'), "openMVS_build/bin")
+else:
+ OPENMVS_BIN = "@OPENMVS_BIN_PATH@"
+
+# Indicate the openMVG camera sensor width directory
+CAMERA_SENSOR_WIDTH_DIRECTORY = "@OPENMVG_SOFTWARE_SFM_SRC_DIR@" + "/../../openMVG/exif/sensor_width_database"
+camera_file_params = os.path.join(CAMERA_SENSOR_WIDTH_DIRECTORY, "sensor_width_camera_database.txt")
+
+# Catch errors
+def erroroutput (output, last_str, last_exec):
+ if (output):
+  return True;
+ else:
+  sys.stderr.write("An error occured during " + last_exec + ". The process halted. Last command:\n");
+  sys.stderr.write("\"" + " ".join(str(x) for x in last_str) + "\"");
+  return False;
+
+# Rename matches files
+def rename_matches(char_in, solver, folder):
+ if solver == "0":
+  char_out = "f"
+ elif solver == "1":
+  char_out = "e"
+ if char_in != char_out:
+  filename_in = os.path.join(folder, "matches." + char_in + ".bin")
+  filename_out = os.path.join(folder, "matches." + char_out + ".bin")
+  os.rename(filename_in, filename_out)
+
+# Check if input folder is not empty
+def check_for_empty_input_folder(folder):
+ if not os.listdir(folder):
+  sys.stderr.write("Your input folder is empty.");
+  return False;
+ else:
+  return True;
+
+# check if there are at least x valid images in folder
+def check_for_valid_images(num, folder):
+ found_images = 0;
+ for file in os.listdir(folder):
+  try:
+   if Image.open(os.path.join(folder, file)):
+    found_images += 1;
+  except IOError:
+    pass;
+ if found_images < num:
+  sys.stderr.write("The Process halted. The input folder contains less than " + str(num) + " images");
+  return False;
+ else:
+  return True;
+
+if user_vars["step"] == "comp_features":
+ # Create paths if not existent
+ if not os.path.exists(os.path.abspath(os.path.join(user_vars["outputpath"], os.pardir))):
+  os.mkdir(os.path.abspath(os.path.join(user_vars["outputpath"], os.pardir)))
+ if not os.path.exists(user_vars["outputpath"]):
+  os.mkdir(user_vars["outputpath"])
+
+ # check if there are at least 3 valid images in folder
+ still_working = check_for_empty_input_folder(user_vars["inputpath"]);
+ if still_working:
+  still_working = check_for_valid_images(3, user_vars["inputpath"]);
+
+ # 1. Image listing - generate sfm_data.json
+ if still_working: 
+  if user_vars["intrinsics"] == "0":
+   add_extras = "";
+  else:
+   add_extras = "-k " + user_vars["intrinsics"];
+  curr_string = [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_SfMInit_ImageListing"),  "-i", user_vars["inputpath"], "-o", user_vars["outputpath"], "-d", camera_file_params, "-c", user_vars["camera_model"], "-g", user_vars["group_cameramodel"], add_extras ]
+  pIntrisics = subprocess.Popen(curr_string)
+  pIntrisics.wait()
+  still_working = erroroutput(os.path.exists(os.path.join(user_vars["outputpath"], "sfm_data.json")), curr_string, "SfMInit_ImageListing")
+ 
+ # 2. Compute features
+ if still_working:
+  curr_string = [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_ComputeFeatures"),  "-i", os.path.join(user_vars["outputpath"], "sfm_data.json"), "-o", user_vars["outputpath"], "-m", user_vars["descr_meth"], "-f" , user_vars["force"], "-p", user_vars["descr_pres"], "-u", user_vars["use_upright"] ]
+  pFeatures = subprocess.Popen(curr_string)
+  pFeatures.wait()
+  still_working = erroroutput(os.path.exists(os.path.join(user_vars["outputpath"], "image_describer.json")), curr_string, "ComputeFeratures")
+  if still_working:
+   print "output_path " + user_vars["outputpath"] + " end_path";
+   print "\n\n************************************************\nComputing features complete. Press Next to continue.\n************************************************"
+
+   # Save options to file
+   with open(os.path.join(user_vars["outputpath"], "Features_options.txt"), "w") as text_file:
+    text_file.write("[Feature computing] Describer preset: " + user_vars["descr_pres"] + "; Describer method: " + user_vars["descr_meth"] + "; Camera model: " + user_vars["camera_model"] + "; Group Camera model: " + user_vars["group_cameramodel"] + "; Upright: " + user_vars["use_upright"] + "; " + add_extras + "[EOL]" )
+   text_file.close()
+
+elif user_vars["step"] == "sfm_solver":
+
+ still_working = check_for_empty_input_folder(user_vars["inputpath"]);
+
+ # SHARED: Compute matches
+ if still_working:
+  curr_string = [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_ComputeMatches"),  "-i", os.path.join(user_vars["inputpath"], "sfm_data.json"), "-o", user_vars["inputpath"], "-r", user_vars["ratio"], "-g", user_vars["matrix_filter"], "-f", user_vars["force"] ]
+  pMatches = subprocess.Popen(curr_string)
+  pMatches.wait()
+  still_working = erroroutput(os.path.exists(os.path.join(user_vars["inputpath"], "geometric_matches")), curr_string, "ComputeMatches")
+
+ # Rename output file to work with SfM pipeline
+ rename_matches(user_vars["matrix_filter"], user_vars["solver"], user_vars["inputpath"])
+
+ # SEQUENTIAL: Reconstruction 
+ if still_working:
+  if user_vars["solver"] == "0":
+   curr_string = [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_IncrementalSfM"),  "-i", os.path.join(user_vars["inputpath"], "sfm_data.json"), "-m", user_vars["matchespath"], "-o", user_vars["outputpath"], "-a", user_vars["image1"], "-b", user_vars["image2"], "-c", user_vars["camera_model"] ]
+   pRecons = subprocess.Popen(curr_string)
+   pRecons.wait()
+   still_working = erroroutput(os.path.exists(os.path.join(user_vars["outputpath"], "sfm_data.bin")), curr_string, "IncrementalSfM")
+
+ # GLOBAL: Reconstruction
+ if still_working:
+  if user_vars["solver"] == "1":
+   curr_string = [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_GlobalSfM"),  "-i", os.path.join(user_vars["inputpath"], "sfm_data.json"), "-m", user_vars["matchespath"], "-o", user_vars["outputpath"] ]
+   pRecons = subprocess.Popen(curr_string)
+   pRecons.wait()
+   still_working = erroroutput(os.path.exists(os.path.join(user_vars["outputpath"], "sfm_data.bin")), curr_string, "GlobalSfM")
+
+ # SHARED: Colorize Structure
+ if still_working:
+  curr_string = [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_ComputeSfM_DataColor"),  "-i", os.path.join(user_vars["outputpath"],"sfm_data.bin"), "-o", os.path.join(user_vars["outputpath"],"colorized.ply")]
+  pColorize = subprocess.Popen(curr_string)
+  pColorize.wait()
+  still_working = erroroutput(os.path.exists(os.path.join(user_vars["outputpath"],"colorized.ply")), curr_string, "ComputeSfM_DataColor")
+
+ if still_working:
+  # SHARED: Structure from Known Poses (robust triangulation)
+  curr_string = [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_ComputeStructureFromKnownPoses"),  "-i", os.path.join(user_vars["outputpath"],"sfm_data.bin"), "-m", user_vars["inputpath"], "-o", os.path.join(user_vars["outputpath"],"robust.ply")]
+  pRobust = subprocess.Popen(curr_string)
+  pRobust.wait()
+  still_working = erroroutput(os.path.exists(os.path.join(user_vars["outputpath"],"robust.ply")), curr_string, "ComputeStructureFromKnownPoses")
+ 
+ if still_working:
+  # Get previous data
+  if user_vars["solver"] == "0":
+   options_solver = "Incremental";
+  elif user_vars["solver"] == "1":
+   options_solver = "Global";
+
+  with open(os.path.join(user_vars["inputpath"], "Features_options.txt"), "r") as text_file_read:
+   features_output = text_file_read.readline();
+  text_file_read.close()
+  options_display = features_output + "[SfM Solver] " + options_solver + "; Filter: " + user_vars["matrix_filter"] + "; Camera model: " + user_vars["camera_model"] + "; Ratio: " + user_vars["ratio"] + "; [EOL]";
+   # Save options to file
+  with open(os.path.join(user_vars["outputpath"],"Pipeline_Options.txt"), "w") as text_file_write:
+   text_file_write.write(options_display)
+  text_file_write.close()
+
+  # Print output
+  print "preview_path " + os.path.join(user_vars["outputpath"],"robust.ply end_path");
+  print "options_used " + options_display + " end_options_used";
+  print "mvs_output_path " + os.path.join(user_vars["outputpath"]," end_path");
+  print "\n\n************************************************\nSfM Pipeline complete.\nOutput folder: " + user_vars["outputpath"] + ".\nPress Next to continue.\n************************************************"
+
+elif user_vars["step"] == "pmvs":
+ curr_string = [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_openMVG2PMVS"),  "-i", os.path.join(user_vars["inputpath"]+"sfm_data.bin"), "-o", user_vars["output_dir"] ]
+ pPMVS = subprocess.Popen(curr_string)
+ pPMVS.wait()
+ still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], "PMVS/pmvs_options.txt")), curr_string, "openMVG2PMVS")
+
+ # Check if PMVS path exists - if not terminate
+ if not os.path.exists(OPENMVG_PMVS_BIN):
+  sys.stderr.write("The PMVS binary files couldn't be found. Please check if PMVS is installed correctly in the " + OPENMVG_PMVS_BIN + "folder or specify another folder during building with the \"-DOPENMVG_PMVS_PATH=\" variable.\n");
+  sys.stderr.write("PMVS output path: " + user_vars["output_dir"] + "PMVS/");
+
+ else: 
+  if still_working:
+   curr_string = [os.path.join(OPENMVG_PMVS_BIN, "pmvs2"), os.path.join(user_vars["output_dir"], "PMVS/"), "pmvs_options.txt"]
+   pPMVS2 = subprocess.Popen(curr_string)
+   pPMVS2.wait()
+   still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], "PMVS/models/pmvs_options.txt.ply")), curr_string, "pmvs2")
+
+  if still_working:
+   # Get previous data
+   with open(os.path.join(user_vars["inputpath"],"Pipeline_Options.txt"), "r") as text_file:
+    pipeline_output = text_file.readline()
+   text_file.close()
+   options_display = pipeline_output + "[MVS: PMVS] Densify: " + user_vars["use_densify"] + "; Refine: " + user_vars["use_refine"] + ";\n"
+   # Data output
+   print "preview_path " + os.path.join(user_vars["output_dir"], "PMVS/models/pmvs_options.txt.ply end_path");
+   print "options_used " + options_display + " end_options_used";
+   print "\n\n************************************************\nRunning PMVS complete.\nOutput file: " + os.path.join(user_vars["output_dir"], "PMVS/models/pmvs_options.txt.ply") + "\nPress Finish to close the program or press Preview to check out the preview.\n************************************************"
+
+elif user_vars["step"] == "cmvs":
+ curr_string = [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_openMVG2PMVS"),  "-i", os.path.join(user_vars["inputpath"]+"sfm_data.bin"), "-o", user_vars["output_dir"]]
+ pCMVS = subprocess.Popen(curr_string)
+ pCMVS.wait()
+ still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], "PMVS/pmvs_options.txt")), curr_string, "openMVG2PMVS")
+
+ # Check if PMVS path exists - if not terminate
+ if not os.path.exists(OPENMVG_PMVS_BIN):
+  sys.stderr.write("The PMVS binary files couldn't be found. Please check if PMVS is installed correctly in the" + OPENMVG_PMVS_BIN + "folder or specify another folder during building with the \"-DOPENMVG_PMVS_PATH=\" variable.\n");
+  sys.stderr.write("PMVS output path:" + user_vars["output_dir"] + "PMVS/");
+ else: 
+  if still_working:
+   curr_string = [os.path.join(OPENMVG_PMVS_BIN, "cmvs"), os.path.join(user_vars["output_dir"], "PMVS/"), user_vars["max_imagecount"], user_vars["cpu"] ]
+   pPMVS2 = subprocess.Popen(curr_string)
+   pPMVS2.wait()
+
+   curr_string = [os.path.join(OPENMVG_PMVS_BIN, "genOption"), os.path.join(user_vars["output_dir"], "PMVS/"), user_vars["level"], user_vars["csize"], user_vars["threshold"], user_vars["wsize"], user_vars["minImageNum"], user_vars["cpu"] ]
+
+   pGenOption = subprocess.Popen(curr_string)
+   pGenOption.wait()
+   still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], "PMVS/option-0000")), curr_string, "cmvs genOption")
+
+  if still_working:
+   curr_string = [os.path.join(OPENMVG_PMVS_BIN, "pmvs2"), os.path.join(user_vars["output_dir"], "PMVS/"), "option-0000"]
+   pPMVS4 = subprocess.Popen(curr_string)
+   pPMVS4.wait()
+   still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], "PMVS/models/option-0000.ply")), curr_string, "pmvs2")
+
+  if still_working:
+   # Get previous data
+   with open(os.path.join(user_vars["inputpath"],"Pipeline_Options.txt"), "r") as text_file:
+    pipeline_output = text_file.readline()
+   text_file.close()
+   options_display = pipeline_output + "[MVS: CMVS] maxImagecount: " + user_vars["max_imagecount"] + "; cpu: " + user_vars["cpu"] + "; level: " + user_vars["level"] + "; csize: " + user_vars["csize"] + "; threshold: " + user_vars["threshold"] + "; wsize: " + user_vars["wsize"]+ "; minImageNum: " +  user_vars["minImageNum"] + ";\n";
+   # Data output
+   print "preview_path " + os.path.join(user_vars["output_dir"], "PMVS/models/option-0000.ply end_path");
+   print "options_used " + options_display + " end_options_used";
+   print "\n\n************************************************\nRunning CMVS complete.\nOutput file: " + os.path.join(user_vars["output_dir"], "PMVS/models/option-0000.ply") + "\nPress Finish to close the program or press Preview check out the preview.\n************************************************"
+
+elif user_vars["step"] == "cmpmvs":
+ pCMPMVS = subprocess.Popen( [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_openMVG2CMPMVS"),  "-i", os.path.join(user_vars["inputpath"]+"sfm_data.bin"), "-o", user_vars["output_dir"]] )
+ pCMPMVS.wait()
+ print "\n\n************************************************\nExporting to CMPMVS complete.\nOutput folder: " + os.path.join(user_vars["output_dir"], "CMPMVS/") + "\nPress Finish to close the program.\n************************************************"
+ 
+elif user_vars["step"] == "mve":
+ pMVE = subprocess.Popen( [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_openMVG2MVE2"),  "-i", os.path.join(user_vars["inputpath"]+"sfm_data.bin"), "-o", user_vars["output_dir"]] )
+ pMVE.wait()
+ print "\n\n************************************************\nExporting to MVE complete.\nOutput folder: " + os.path.join(user_vars["output_dir"], "MVE/") + "\nPress Finish to close the program.\n************************************************"
+
+elif user_vars["step"] == "openMVS":
+ # Check if necessary vars are set
+ if not "use_densify" in user_vars:
+  user_vars["use_densify"] = "OFF";
+
+ if not "use_refine" in user_vars:
+  user_vars["use_refine"] = "OFF";
+
+ if not os.path.exists(user_vars["output_dir"]):
+  os.mkdir(user_vars["output_dir"])
+
+ # 1. Import
+ curr_string = [ os.path.join(OPENMVG_SFM_BIN, "openMVG_main_openMVG2openMVS"),  "-i", os.path.join(user_vars["inputpath"], "sfm_data.bin"), "-o", os.path.join(user_vars["output_dir"], "scene.mvs"), "-d",  os.path.join(user_vars["output_dir"], "undistorted_images") ]
+ pMVSImport = subprocess.Popen(curr_string)
+ pMVSImport.wait()
+ still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], "scene.mvs")), curr_string, "openMVG_main_openMVG2openMVS")
+
+ # Check if openMVS path exists - if not terminate
+ if not os.path.exists(OPENMVS_BIN):
+  sys.stderr.write("The OpenMVS binary files couldn't be found. Please check if openMVS is installed correctly. You can set a costum path with the \"-DOPENMVS_BIN_PATH\" variable during building.");
+  sys.stderr.write("OpenMVS output path:" + user_vars["output_dir"]);
+ else:  
+  # 2. Densify Point Cloud (optional)
+  if still_working and user_vars["use_densify"] == "ON":
+   curr_string = [os.path.join(OPENMVS_BIN, "DensifyPointCloud"), os.path.join(user_vars["output_dir"], "scene.mvs"), "-w", user_vars["output_dir"] ]
+   pMVSDensify = subprocess.Popen(curr_string)
+   pMVSDensify.wait()
+   still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], "scene_dense.mvs")), curr_string, "DensifyPointCloud")
+
+  # 3. Reconstruct Meshes
+  if user_vars["use_densify"] == "ON":
+   this_input_file = "scene_dense.mvs";
+   this_output_file = "scene_dense_mesh.mvs";
+   this_refine_file = "scene_dense_mesh_refine.mvs";
+  else:
+   this_input_file = "scene.mvs";
+   this_output_file = "scene_mesh.mvs";
+   this_refine_file = "scene_mesh_refine.mvs";
+
+  if still_working:
+   curr_string = [os.path.join(OPENMVS_BIN, "ReconstructMesh"), os.path.join(user_vars["output_dir"], this_input_file), "-w", user_vars["output_dir"], "-v", "3", "--gclowdensity", user_vars["RT_use_cglowdensity"], "--export-type", "obj" ]
+   pMVSReconstruct = subprocess.Popen(curr_string)
+   pMVSReconstruct.wait()
+   still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], this_output_file)), curr_string, "ReconstructMesh")
+
+  # 4. Refine Meshes (optional)
+  if still_working and user_vars["use_refine"] == "ON":
+   curr_string = [os.path.join(OPENMVS_BIN, "RefineMesh"), os.path.join(user_vars["output_dir"], this_output_file), "-w", user_vars["output_dir"], "-v", "3", "--export-type", "obj", "--scales", user_vars["RE_scales"], "--resolution-level", user_vars["RE_resolutionlevel"]]
+   pMVSRefine = subprocess.Popen(curr_string)
+   pMVSRefine.wait()
+   still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], this_refine_file)), curr_string, "RefineMesh")
+
+  # 5. Texture Meshes
+  if user_vars["use_refine"] == "ON":
+   texture_input_file = this_refine_file;
+   texture_output_file = texture_input_file.replace(".mvs", "_texture.obj");
+  else:
+   texture_input_file = this_output_file;
+   texture_output_file = texture_input_file.replace(".mvs", "_texture.obj");
+
+  if still_working:
+   curr_string = [os.path.join(OPENMVS_BIN, "TextureMesh"), os.path.join(user_vars["output_dir"],texture_input_file), "-w", user_vars["output_dir"], "--export-type", "obj",  "--resolution-level", user_vars["TE_resolutionlevel"] ]
+   pMVSTexture = subprocess.Popen(curr_string)
+   pMVSTexture.wait()
+   still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], texture_output_file)), curr_string, "TextureMesh")
+   if still_working:
+    # Get previous data
+    with open(os.path.join(user_vars["inputpath"],"Pipeline_Options.txt"), "r") as text_file:
+     pipeline_output = text_file.readline()
+    text_file.close()
+    options_display = pipeline_output + "[MVS: OpenMVS] Densify: " + user_vars["use_densify"] + "; Refine: " + user_vars["use_refine"] + ", scales: " + user_vars["RE_scales"] + "resolution-level: " + user_vars["RE_resolutionlevel"] + "; Texture: resolution-level: " + user_vars["TE_resolutionlevel"] + ";\n"
+    # Save options to file
+    with open(os.path.join(user_vars["output_dir"],"openMVS_Options.txt"), "w") as text_file_write:
+     text_file_write.write(options_display)
+    text_file_write.close()
+    # Data output
+    print "preview_path " + os.path.join(user_vars["output_dir"], texture_output_file) + " end_path";
+    print "options_used " + options_display + " end_options_used";
+    print "\n\n************************************************\nRunning openMVS complete.\nOutput folder: " + user_vars["output_dir"] + ".\nOutput file: " + os.path.join(user_vars["output_dir"], texture_output_file) + "\nPress Finish to close the program or check out the Preview.\n************************************************"
+    
+else:
+ pass

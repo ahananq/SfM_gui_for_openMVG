@@ -1,48 +1,29 @@
-=====================================
-OpenMVG (open Multiple View Geometry)
-=====================================
+#About 
+This is a GUI (general user interface) for the SfM (Structure from Motion) pipelines of [openMVG](http://imagine.enpc.fr/~moulonp/openMVG/) and [openMVS](https://github.com/cdcseacave/openMVS). Also supporting [CMVS/PMVS](https://github.com/pmoulon/CMVS-PMVS) 
+It's aim is to make it simple to do a state-of-the-art Structure from Motion Reconstrcution from photographic scenes, especially anatomic structures with FOSS (free and open source software). It is aimed for users with no or very limited knowledge of SfM pipelines and the terminal.
 
-![Logo](https://github.com/openMVG/openMVG/raw/master/logo/openMVG_Logo.png)
+# Install & Usage
+The GUI is curently only aimed and tested for Ubuntu 15.10.
 
-------------
-Introduction
-------------
+For Building from the terminal on Ubuntu please see the [Building Page](https://github.com/open-anatomy/SfM_gui_for_openMVG/blob/master/BUILD.md).
 
-[OpenMVG (Multiple View Geometry)](http://imagine.enpc.fr/~moulonp/openMVG/) "open Multiple View Geometry" is a library for computer-vision scientists and especially targeted to the Multiple View Geometry community. It is designed to provide an easy access to the classical problem solvers in Multiple View Geometry and solve them accurately.
+Once the project is built, just run "~/openMVG_build/Linux-x86_64-RELEASE/openMVG_SfM_gui" from the terminal or add a launcher to this location.
 
-The openMVG credo is: "Keep it simple, keep it maintainable". OpenMVG targets readable code that is easy to use and modify by the community.
+# Credits / License
+[openMVG](https://github.com/openMVG/openMVG) is developed by Pierre Moulon - see [Authors](https://github.com/openMVG/openMVG/blob/master/AUTHORS). 
+[openMVS](https://github.com/cdcseacave/openMVS) is developed by cdcseacave.
+[CMVS/PMVS](https://github.com/pmoulon/CMVS-PMVS) is developed by Pierre Moulon. 
+[Point Cloud Library](https://github.com/PointCloudLibrary) is used for Previews.
 
-All the features and modules are unit tested. This test driven development ensures that the code works as it should and enables more consistent repeatability. Furthermore, it makes it easier for the user to understand and learn the given features.
+As a fork of openMVG the [openMVG Licence](https://github.com/openMVG/openMVG/blob/master/license.openMVG) applies.
 
---------
-Building
---------
+# Preview
+![Screenshot](https://github.com/open-anatomy/SfM_gui_for_openMVG/raw/master/docs/screenshot.png)
 
-See [BUILD](https://github.com/openMVG/openMVG/raw/master/BUILD) text file
+# Intention
+This program is part of the [Open Anatomy Project](https://github.com/open-anatomy) and aimed to provide an easy-to-use Interface for the Reconstruction of anatomic structures from image sets. It can access the main features from openMVG and openMVS for these purposes. It's original intention was to become a part of openMVG, and the openMVG parts of it may be used for a pull request in the future.
 
-Continuous integration:
- - linux 64 bits/GCC (Build + tests): [![Build Status](https://travis-ci.org/openMVG/openMVG.png?branch=develop)](https://travis-ci.org/openMVG/openMVG)
- - VStudio 2015 64 bits (Build): [![Build status](https://ci.appveyor.com/api/projects/status/3nv6rt41yxqx5v7i?svg=true)](https://ci.appveyor.com/project/pmoulon/openmvg)
- - Unit test coverage: [![Coverage Status](https://coveralls.io/repos/openMVG/openMVG/badge.png?branch=develop)](https://coveralls.io/r/openMVG/openMVG?branch=develop)
-
--------
-License
--------
-
-See [LICENSE MPL2](https://github.com/openMVG/openMVG/raw/master/license.openMVG) text file
-
--------
-Authors
--------
-
-See [Authors](https://github.com/openMVG/openMVG/raw/master/AUTHORS) text file
-
--------
-Documentation
--------
-
-See [documentation](http://openmvg.readthedocs.org/en/latest)
-
+# Acknowledgements & contact for openMVG
 ----------------
 Acknowledgements
 ----------------
@@ -90,4 +71,3 @@ or cite it as:
     howpublished = "\url{https://github.com/openMVG/openMVG}",
   }
 ```
-
