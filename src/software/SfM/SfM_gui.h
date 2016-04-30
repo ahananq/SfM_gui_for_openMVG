@@ -263,11 +263,16 @@ private slots:
 
 private:
      QGridLayout *mainLayout;
+     QDialogButtonBox *openMVS_dialog_buttonBox;
      QCheckBox *RT_use_cglowdensity;
      QLabel *RE_scalesLabel;
      QLineEdit *RE_scales;
+     QLabel *DY_resolutionlevelLabel;
+     QLineEdit *DY_resolutionlevel;
      QLabel *RE_resolutionlevelLabel;
      QLineEdit *RE_resolutionlevel;
+     QLabel *RE_close_holesLabel;
+     QLineEdit *RE_close_holes;
      QLabel *TE_resolutionlevelLabel;
      QLineEdit *TE_resolutionlevel;
 };

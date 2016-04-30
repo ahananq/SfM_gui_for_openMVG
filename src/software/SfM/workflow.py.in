@@ -282,7 +282,7 @@ elif user_vars["step"] == "openMVS":
  else:  
   # 2. Densify Point Cloud (optional)
   if still_working and user_vars["use_densify"] == "ON":
-   curr_string = [os.path.join(OPENMVS_BIN, "DensifyPointCloud"), os.path.join(user_vars["output_dir"], "scene.mvs"), "-w", user_vars["output_dir"], "--resolution-level", "0" ]
+   curr_string = [os.path.join(OPENMVS_BIN, "DensifyPointCloud"), os.path.join(user_vars["output_dir"], "scene.mvs"), "-w", user_vars["output_dir"], "-v", "3", "--resolution-level", user_vars["DY_resolutionlevel"] ]
    pMVSDensify = subprocess.Popen(curr_string)
    pMVSDensify.wait()
    still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], "scene_dense.mvs")), curr_string, "DensifyPointCloud")
@@ -305,7 +305,7 @@ elif user_vars["step"] == "openMVS":
 
   # 4. Refine Meshes (optional)
   if still_working and user_vars["use_refine"] == "ON":
-   curr_string = [os.path.join(OPENMVS_BIN, "RefineMesh"), os.path.join(user_vars["output_dir"], this_output_file), "-w", user_vars["output_dir"], "-v", "3", "--export-type", "obj", "--scales", user_vars["RE_scales"], "--resolution-level", user_vars["RE_resolutionlevel"]]
+   curr_string = [os.path.join(OPENMVS_BIN, "RefineMesh"), os.path.join(user_vars["output_dir"], this_output_file), "-w", user_vars["output_dir"], "-v", "3", "--export-type", "obj", "--scales", user_vars["RE_scales"], "--resolution-level", user_vars["RE_resolutionlevel"], "--close-holes", user_vars["RE_close_holes"] ]
    pMVSRefine = subprocess.Popen(curr_string)
    pMVSRefine.wait()
    still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], this_refine_file)), curr_string, "RefineMesh")
@@ -319,7 +319,7 @@ elif user_vars["step"] == "openMVS":
    texture_output_file = texture_input_file.replace(".mvs", "_texture.obj");
 
   if still_working:
-   curr_string = [os.path.join(OPENMVS_BIN, "TextureMesh"), os.path.join(user_vars["output_dir"],texture_input_file), "-w", user_vars["output_dir"], "--export-type", "obj",  "--resolution-level", user_vars["TE_resolutionlevel"] ]
+   curr_string = [os.path.join(OPENMVS_BIN, "TextureMesh"), os.path.join(user_vars["output_dir"],texture_input_file), "-w", user_vars["output_dir"], "-v", "3", "--export-type", "obj",  "--resolution-level", user_vars["TE_resolutionlevel"] ]
    pMVSTexture = subprocess.Popen(curr_string)
    pMVSTexture.wait()
    still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], texture_output_file)), curr_string, "TextureMesh")
@@ -328,7 +328,7 @@ elif user_vars["step"] == "openMVS":
     with open(os.path.join(user_vars["inputpath"],"Pipeline_Options.txt"), "r") as text_file:
      pipeline_output = text_file.readline()
     text_file.close()
-    options_display = pipeline_output + "[MVS: OpenMVS] Densify: " + user_vars["use_densify"] + "; Refine: " + user_vars["use_refine"] + ", scales: " + user_vars["RE_scales"] + "resolution-level: " + user_vars["RE_resolutionlevel"] + "; Texture: resolution-level: " + user_vars["TE_resolutionlevel"] + ";\n"
+    options_display = pipeline_output + "[MVS: OpenMVS] Densify: " + user_vars["use_densify"] + " resolution-level: " + user_vars["DY_resolutionlevel"] + "; Refine: " + user_vars["use_refine"] + ", scales: " + user_vars["RE_scales"] + " resolution-level: " + user_vars["RE_resolutionlevel"] + " close-holes: " + user_vars["RE_close_holes"] + "; Texture: resolution-level: " + user_vars["TE_resolutionlevel"] + ";\n"
     # Save options to file
     with open(os.path.join(user_vars["output_dir"],"openMVS_Options.txt"), "w") as text_file_write:
      text_file_write.write(options_display)

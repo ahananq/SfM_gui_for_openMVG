@@ -14,9 +14,11 @@ int matrix_filter_standard = 1;
 QString str_matrix_filter_standard = "f";
 
 // openMVS Settings
+QString init_DY_resolutionlevel = "0";
 QString init_RT_use_cglowdensity = "true";
 QString init_RE_scales = "3";
 QString init_RE_resolutionlevel = "0";
+QString init_RE_close_holes = "30";
 QString init_TE_resolutionlevel = "0";
 
 // Initialize paths string and filters for later use
@@ -32,7 +34,7 @@ QString initialcommandline_sfm_solver = "python ../software/SfM/workflow.py step
 
 QString initialize_commandline_mvs_openMVS()
 {
-    return "python ../software/SfM/workflow.py step=\"openMVS\" inputpath=\"" + work_dir + "\" output_dir=\"" + work_dir + "\" use_densify=\"ON\" use_refine=\"ON\" RT_use_cglowdensity=\"" + init_RT_use_cglowdensity + "\" RE_scales=\"" + init_RE_scales + "\" RE_resolutionlevel=\"" + init_RE_resolutionlevel + "\"  TE_resolutionlevel=\"" + init_TE_resolutionlevel + "\"";
+    return "python ../software/SfM/workflow.py step=\"openMVS\" inputpath=\"" + work_dir + "\" output_dir=\"" + work_dir + "\" use_densify=\"ON\" use_refine=\"ON\" DY_resolutionlevel=\"" + init_DY_resolutionlevel + "\" RT_use_cglowdensity=\"" + init_RT_use_cglowdensity + "\" RE_scales=\"" + init_RE_scales +  "\" RE_resolutionlevel=\"" + init_RE_resolutionlevel + "\" RE_close_holes=\"" + init_RE_close_holes +  "\" TE_resolutionlevel=\"" + init_TE_resolutionlevel + "\"";
 }
 QString initialcommandline_mvs_openMVS = initialize_commandline_mvs_openMVS();
 
@@ -86,15 +88,19 @@ void launchPreview(QString preview_file, QString title, QString options)
 }
 
 QString str_RT_use_cglowdensity = init_RT_use_cglowdensity;
+QString str_DY_resolutionlevel = init_DY_resolutionlevel;
 QString str_RE_scales = init_RE_scales;
 QString str_RE_resolutionlevel = init_RE_resolutionlevel;
+QString str_RE_close_holes = init_RE_close_holes;
 QString str_TE_resolutionlevel = init_TE_resolutionlevel;
 
 void resetopenMVS_settings()
 {
     str_RT_use_cglowdensity = init_RT_use_cglowdensity;
+    str_DY_resolutionlevel = init_DY_resolutionlevel;
     str_RE_scales = init_RE_scales;
     str_RE_resolutionlevel = init_RE_resolutionlevel;
+    str_RE_close_holes = init_RE_close_holes;
     str_TE_resolutionlevel = init_TE_resolutionlevel;
 }
 
@@ -1055,7 +1061,7 @@ void PipelinePage::btnAdvancedOptionsClicked(int checkstate)
 	    btnImagesFolderPath->QWidget::show();
 	    CameraSel->QWidget::show();
    	    CameraSelLabel->QWidget::show();
-       	    solverImage1->QWidget::show();
+	    solverImage1->QWidget::show();
 	    solverImage1Button->QWidget::show();
 	    solverImage1Label->QWidget::show();
 	    solverImage2->QWidget::show();
@@ -1718,9 +1724,7 @@ void MVSSelectorPage::openMVSoptionsdisplay()
     RefineOptionsButton->QWidget::show();
     TextureOptionsButton->QWidget::show();
     DensifyLabel->QWidget::show();
-    /* currently hidden
     DensifyOptionsButton->QWidget::show();
-    */
     ReconstructLabel->QWidget::show();
     RefineLabel->QWidget::show();
     TextureLabel->QWidget::show();
@@ -1910,7 +1914,9 @@ void MVSSelectorPage::getDialogResults(QString mode, QString new_content)
     // fill in values for rerunning dialog
     if(mode == "RT_use_cglowdensity") { str_RT_use_cglowdensity = new_content; }
     else if(mode == "RE_scales") { str_RE_scales = new_content; }
+    else if(mode == "DY_resolutionlevel") { str_DY_resolutionlevel = new_content; }
     else if(mode == "RE_resolutionlevel") { str_RE_resolutionlevel = new_content; }
+    else if(mode == "RE_close_holes") { str_RE_close_holes = new_content; }
     else if(mode == "TE_resolutionlevel") { str_TE_resolutionlevel = new_content; }
 }
 
@@ -1918,16 +1924,26 @@ void MVSSelectorPage::getDialogResults(QString mode, QString new_content)
 openMVSDialog::openMVSDialog(QWidget *parent)
       : QDialog(parent)
 {
+    mainLayout = new QGridLayout;
+
     switch (openMVS_dialog_switcher) 
     {
-/* currently hidden
 	case 0: //Densify Settings
 	    this->setWindowTitle("Densify Settings");
-	    mainLayout = new QGridLayout;
-	    mainLayout->addWidget();
+	    DY_resolutionlevelLabel = new QLabel(tr("resolutionlevel (how many times the source images get sized down):"));
+	    DY_resolutionlevel = new QLineEdit;
+	    DY_resolutionlevel->QWidget::setFixedWidth(100);
+	    DY_resolutionlevel->setAlignment(Qt::AlignHCenter);	
+	    mainLayout->addWidget(DY_resolutionlevelLabel, 0, 0);
+	    mainLayout->addWidget(DY_resolutionlevel, 0, 1);
+
+	    //Set values
+	    DY_resolutionlevel->setText(str_DY_resolutionlevel);
+
+	    // pass actions to handlers
+	    connect(DY_resolutionlevel, &QLineEdit::textEdited, [this](QString new_content) { openMVSDialog::valueChanged("DY_resolutionlevel", new_content); } );
 	break;
 
-*/	
 	case 1: // Reconstruct Settings
 	    this->setWindowTitle("Reconstruct Settings");
 	    RT_use_cglowdensity = new QCheckBox(tr("gclowdensity (compatibility mode)"));
@@ -1952,19 +1968,26 @@ openMVSDialog::openMVSDialog(QWidget *parent)
 	    RE_resolutionlevel = new QLineEdit;
 	    RE_resolutionlevel->QWidget::setFixedWidth(100);
 	    RE_resolutionlevel->setAlignment(Qt::AlignHCenter);	
-	    mainLayout = new QGridLayout;
+	    RE_close_holesLabel = new QLabel(tr("close-holes (try to close small holes in the input surface (0 - disabled)):"));
+	    RE_close_holes = new QLineEdit;
+	    RE_close_holes->QWidget::setFixedWidth(100);
+	    RE_close_holes->setAlignment(Qt::AlignHCenter);	
 	    mainLayout->addWidget(RE_scalesLabel, 0, 0);
 	    mainLayout->addWidget(RE_scales, 0, 1);
 	    mainLayout->addWidget(RE_resolutionlevelLabel, 1, 0);
 	    mainLayout->addWidget(RE_resolutionlevel, 1, 1);
+	    mainLayout->addWidget(RE_close_holesLabel, 2, 0);
+	    mainLayout->addWidget(RE_close_holes, 2, 1);
 
 	    //Set values
 	    RE_scales->setText(str_RE_scales);
 	    RE_resolutionlevel->setText(str_RE_resolutionlevel);
+	    RE_close_holes->setText(str_RE_close_holes);
 
 	    // pass actions to handlers
 	    connect(RE_scales, &QLineEdit::textEdited, [this](QString new_content) { openMVSDialog::valueChanged("RE_scales", new_content); } );
 	    connect(RE_resolutionlevel, &QLineEdit::textEdited, [this](QString new_content) { openMVSDialog::valueChanged("RE_resolutionlevel", new_content); } );
+	    connect(RE_close_holes, &QLineEdit::textEdited, [this](QString new_content) { openMVSDialog::valueChanged("RE_close_holes", new_content); } );
 	break;
 
 	case 3: // Texture Settings
@@ -1973,7 +1996,6 @@ openMVSDialog::openMVSDialog(QWidget *parent)
 	    TE_resolutionlevel = new QLineEdit;
 	    TE_resolutionlevel->QWidget::setFixedWidth(100);
 	    TE_resolutionlevel->setAlignment(Qt::AlignHCenter);	
-	    mainLayout = new QGridLayout;
 	    mainLayout->addWidget(TE_resolutionlevelLabel, 0, 0);
 	    mainLayout->addWidget(TE_resolutionlevel, 0, 1);
 
@@ -1984,6 +2006,10 @@ openMVSDialog::openMVSDialog(QWidget *parent)
 	    connect(TE_resolutionlevel, &QLineEdit::textEdited, [this](QString new_content) { openMVSDialog::valueChanged("TE_resolutionlevel", new_content); } );
 	break;
     }
+    openMVS_dialog_buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
+    connect(openMVS_dialog_buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+
+    mainLayout->addWidget(openMVS_dialog_buttonBox, 10, 0, 1, 2);
     setLayout(mainLayout);
 }
 
