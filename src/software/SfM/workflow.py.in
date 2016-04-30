@@ -282,7 +282,7 @@ elif user_vars["step"] == "openMVS":
  else:  
   # 2. Densify Point Cloud (optional)
   if still_working and user_vars["use_densify"] == "ON":
-   curr_string = [os.path.join(OPENMVS_BIN, "DensifyPointCloud"), os.path.join(user_vars["output_dir"], "scene.mvs"), "-w", user_vars["output_dir"] ]
+   curr_string = [os.path.join(OPENMVS_BIN, "DensifyPointCloud"), os.path.join(user_vars["output_dir"], "scene.mvs"), "-w", user_vars["output_dir"], "--resolution-level", "0" ]
    pMVSDensify = subprocess.Popen(curr_string)
    pMVSDensify.wait()
    still_working = erroroutput(os.path.exists(os.path.join(user_vars["output_dir"], "scene_dense.mvs")), curr_string, "DensifyPointCloud")

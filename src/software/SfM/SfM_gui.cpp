@@ -1055,6 +1055,13 @@ void PipelinePage::btnAdvancedOptionsClicked(int checkstate)
 	    btnImagesFolderPath->QWidget::show();
 	    CameraSel->QWidget::show();
    	    CameraSelLabel->QWidget::show();
+       	    solverImage1->QWidget::show();
+	    solverImage1Button->QWidget::show();
+	    solverImage1Label->QWidget::show();
+	    solverImage2->QWidget::show();
+	    solverImage2Button->QWidget::show();
+	    solverImage2Label->QWidget::show();
+	    image_selector_grid_descr->QWidget::show();
 	}
     }
     else {
@@ -1079,6 +1086,13 @@ void PipelinePage::btnAdvancedOptionsClicked(int checkstate)
 	TerminalMode->QCheckBox::setChecked(false);
 	command->setEnabled(false);
 	command->QWidget::hide();
+	solverImage1->QWidget::hide();
+	solverImage1Button->QWidget::hide();
+	solverImage1Label->QWidget::hide();
+	solverImage2->QWidget::hide();
+	solverImage2Button->QWidget::hide();
+	solverImage2Label->QWidget::hide();
+	image_selector_grid_descr->QWidget::hide();
     }
 }
 
