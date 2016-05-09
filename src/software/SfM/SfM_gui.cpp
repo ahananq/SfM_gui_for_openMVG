@@ -612,6 +612,8 @@ void Comp_FeaturesPage::on_selectors_changed(QString selection_string, QString o
     if (selection_string == "Pinhole") { selection_string = "1"; }
     else if (selection_string == "Pinhole radial 1") { selection_string = "2"; }
     else if (selection_string == "Pinhole radial 3 (default)") { selection_string = "3"; }
+    else if (selection_string == "Pinhole brown 2") { selection_string = "4"; }
+    else if (selection_string == "Pinhole with a simple Fish-eye distortion") { selection_string = "5"; }
     // GroupCameraSel + upright
     else if ((selection_string.contains("1")) and ((option_decl == "group_cameramodel") or (option_decl == "use_upright"))) { selection_string = "1"; }
     else if ((selection_string.contains("0")) and ((option_decl == "group_cameramodel") or (option_decl == "use_upright"))) { selection_string = "0"; }
@@ -693,8 +695,8 @@ PipelinePage::PipelinePage(QWidget *parent)
     CameraSel->addItem(tr("Pinhole"), QVariant(1));
     CameraSel->addItem(tr("Pinhole radial 1"), QVariant(2));
     CameraSel->addItem(tr("Pinhole radial 3 (default)"), QVariant(3));
-    CameraSel->addItem("Pinhole brown 2", QVariant(4));
-    CameraSel->addItem("Pinhole with a simple Fish-eye distortion", QVariant(5));
+    CameraSel->addItem(tr("Pinhole brown 2"), QVariant(4));
+    CameraSel->addItem(tr("Pinhole with a simple Fish-eye distortion"), QVariant(5));
     CameraSel->QWidget::hide();
     CameraSelLabel->QWidget::hide();
     NearestMatchingLabel = new QLabel(tr("[ComputeMatches] Nearest Matching Method:"));
