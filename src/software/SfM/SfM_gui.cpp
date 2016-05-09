@@ -30,7 +30,7 @@ QString outputpath = parent_path_cut.mid(0, parent_path_cut.lastIndexOf("/")) + 
 
 QString initialcommandline_comp_features = "python ../software/SfM/workflow.py step=\"comp_features\" inputpath=\"" + work_dir + "\" outputpath=\"" + outputpath + "\" camera_model=\"3\" descr_pres=\"" + str_desc_pres_standard + "\" descr_meth=\"SIFT\" group_cameramodel=\"1\" use_upright=\"0\" intrinsics=\"0\" force=1";
 
-QString initialcommandline_sfm_solver = "python ../software/SfM/workflow.py step=\"sfm_solver\" inputpath=\"" + work_dir + "\" imagespath=\"" + work_dir + "\" matchespath=\"" + work_dir + "\" outputpath=\"" + work_dir + "\"  image1=\"\" image2=\"\" solver=\"" + QString::number(PipelineSel_standard) + "\" ratio=\"0.8\" matrix_filter=\"" + str_matrix_filter_standard + "\" camera_model=\"3\" force=1";
+QString initialcommandline_sfm_solver = "python ../software/SfM/workflow.py step=\"sfm_solver\" inputpath=\"" + work_dir + "\" imagespath=\"" + work_dir + "\" matchespath=\"" + work_dir + "\" outputpath=\"" + work_dir + "\"  image1=\"\" image2=\"\" solver=\"" + QString::number(PipelineSel_standard) + "\" ratio=\"0.8\" matrix_filter=\"" + str_matrix_filter_standard + "\" camera_model=\"3\" nearest_matching=\"AUTO\" force=1";
 
 QString initialize_commandline_mvs_openMVS()
 {
@@ -222,6 +222,8 @@ Comp_FeaturesPage::Comp_FeaturesPage(QWidget *parent)
     CameraSel->addItem("Pinhole", QVariant(1));
     CameraSel->addItem("Pinhole radial 1", QVariant(2));
     CameraSel->addItem("Pinhole radial 3 (default)", QVariant(3));
+    CameraSel->addItem("Pinhole brown 2", QVariant(4));
+    CameraSel->addItem("Pinhole with a simple Fish-eye distortion", QVariant(5));
     CameraSel->QWidget::hide();
     CameraSelLabel->QWidget::hide();
     GroupCameraSelLabel = new QLabel(tr("[SfMInit_ImageListing] Group Camera Model:"));
@@ -691,8 +693,20 @@ PipelinePage::PipelinePage(QWidget *parent)
     CameraSel->addItem(tr("Pinhole"), QVariant(1));
     CameraSel->addItem(tr("Pinhole radial 1"), QVariant(2));
     CameraSel->addItem(tr("Pinhole radial 3 (default)"), QVariant(3));
+    CameraSel->addItem("Pinhole brown 2", QVariant(4));
+    CameraSel->addItem("Pinhole with a simple Fish-eye distortion", QVariant(5));
     CameraSel->QWidget::hide();
     CameraSelLabel->QWidget::hide();
+    NearestMatchingLabel = new QLabel(tr("[ComputeMatches] Nearest Matching Method:"));
+    NearestMatching = new QComboBox;
+    NearestMatching->addItem(tr("AUTO"), QVariant(1));
+    NearestMatching->addItem(tr("BRUTEFORCEL2"), QVariant(2));
+    NearestMatching->addItem(tr("ANNL2"), QVariant(3));
+    NearestMatching->addItem(tr("CASCADEHASHINGL2"), QVariant(4));
+    NearestMatching->addItem(tr("FASTCASCADEHASHINGL2"), QVariant(5));
+    NearestMatching->addItem(tr("BRUTEFORCEHAMMING (Binary based descriptor)"), QVariant(6));
+    NearestMatching->QWidget::hide();
+    NearestMatchingLabel->QWidget::hide();
     // Incremental-specific
     solverImage1 = new QLineEdit("");
     solverImage1->QWidget::hide();
@@ -771,20 +785,23 @@ PipelinePage::PipelinePage(QWidget *parent)
     advanced_options->addWidget(CameraSelLabel, 5, 0);
     advanced_options->addWidget(CameraSel, 5, 1);
     CameraSel->setCurrentIndex(2);
-    advanced_options->addWidget(sliderRatio, 6, 1);
-    advanced_options->addWidget(ratioLabel, 6, 0);
-    advanced_options->addWidget(ratioValue, 6, 2);
-    advanced_options->addWidget(InputLabel, 7, 0);
-    advanced_options->addWidget(InputPath, 7, 1);
-    advanced_options->addWidget(btnInputPath, 7, 2);
-    advanced_options->addWidget(ImagesFolderLabel, 8, 0);
-    advanced_options->addWidget(ImagesFolderPath, 8, 1);
-    advanced_options->addWidget(btnImagesFolderPath, 8, 2);
-    advanced_options->addWidget(OutputLabel, 9, 0);
-    advanced_options->addWidget(OutputPath, 9, 1);
-    advanced_options->addWidget(btnOutputPath, 9, 2);
+    advanced_options->addWidget(NearestMatchingLabel, 6, 0);
+    advanced_options->addWidget(NearestMatching, 6, 1);
+    NearestMatching->setCurrentIndex(0);
+    advanced_options->addWidget(sliderRatio, 7, 1);
+    advanced_options->addWidget(ratioLabel, 7, 0);
+    advanced_options->addWidget(ratioValue, 7, 2);
+    advanced_options->addWidget(InputLabel, 8, 0);
+    advanced_options->addWidget(InputPath, 8, 1);
+    advanced_options->addWidget(btnInputPath, 8, 2);
+    advanced_options->addWidget(ImagesFolderLabel, 9, 0);
+    advanced_options->addWidget(ImagesFolderPath, 9, 1);
+    advanced_options->addWidget(btnImagesFolderPath, 9, 2);
+    advanced_options->addWidget(OutputLabel, 10, 0);
+    advanced_options->addWidget(OutputPath, 10, 1);
+    advanced_options->addWidget(btnOutputPath, 10, 2);
     TerminalMode->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
-    advanced_options->addWidget(TerminalMode, 10, 0, 1, 2);
+    advanced_options->addWidget(TerminalMode, 11, 0, 1, 2);
     command->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);	
     advanced_options->addWidget(command, 11, 0, 1, 3);
 
@@ -823,6 +840,7 @@ PipelinePage::PipelinePage(QWidget *parent)
     connect(CameraSel,static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [this](int selection_num) { on_selectors_changed(selection_num, "camera_model"); } );
     connect(MatrixSel,static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [this](int selection_num) { on_selectors_changed(selection_num, "matrix_filter"); } );
     connect(PipelineSel,static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [this](int selection_num) { on_selectors_changed(selection_num, "solver"); } );
+    connect(NearestMatching,static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [this](int selection_num) { on_selectors_changed(selection_num, "nearest_matching"); } );
     // Processes
     connect(process_command, SIGNAL(readyReadStandardOutput()),this, SLOT(rightMessage()) );
     connect(process_command, SIGNAL(readyReadStandardError()), this, SLOT(wrongMessage()) );
@@ -1052,6 +1070,8 @@ void PipelinePage::btnAdvancedOptionsClicked(int checkstate)
 	OutputPath->QWidget::show();
 	btnOutputPath->QWidget::show();
 	OutputLabel->QWidget::show();
+	NearestMatching->QWidget::show();
+	NearestMatchingLabel->QWidget::show();
 
 	// If Pipeline = Incremental show image folder selection
         if(PipelineSel->itemData(PipelineSel->currentIndex()).toString() == "1")
@@ -1099,6 +1119,8 @@ void PipelinePage::btnAdvancedOptionsClicked(int checkstate)
 	solverImage2Button->QWidget::hide();
 	solverImage2Label->QWidget::hide();
 	image_selector_grid_descr->QWidget::hide();
+	NearestMatching->QWidget::hide();
+	NearestMatchingLabel->QWidget::hide();
     }
 }
 
@@ -1202,6 +1224,16 @@ void PipelinePage::on_selectors_changed(int selection_num, QString option_decl)
     }
     // Event: Camera changed
     else if (option_decl == "camera_model") { replace_char = QString::number(selection_num+1); }
+    // Event: Nearest matching methoid changed
+    else if (option_decl == "nearest_matching")
+    {
+	if(selection_num == 0) { replace_char = "AUTO"; }
+	else if(selection_num == 1) { replace_char = "BRUTEFORCEL2"; }
+	else if(selection_num == 2) { replace_char = "ANNL2"; }
+	else if(selection_num == 3) { replace_char = "CASCADEHASHINGL2"; }
+	else if(selection_num == 4) { replace_char = "FASTCASCADEHASHINGL2"; }
+	else if(selection_num == 5) { replace_char = "BRUTEFORCEHAMMING"; }
+    }
 
     // general replace
     qDebug() << str_commando.replace(QRegExp (option_decl + "=\"([^\"]*)\""), option_decl + "=\"" + replace_char + "\"");

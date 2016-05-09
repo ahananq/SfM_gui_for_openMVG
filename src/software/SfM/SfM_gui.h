@@ -156,8 +156,8 @@ private:
     QLabel *MatrixSelLabel;
     QComboBox *MatrixSel;
     QLineEdit *preview_pipeline;
-
-
+    QComboBox *NearestMatching;
+    QLabel *NearestMatchingLabel;
 };
 
 // PAGE: MVSSelector

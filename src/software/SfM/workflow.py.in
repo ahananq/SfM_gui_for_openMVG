@@ -120,7 +120,7 @@ elif user_vars["step"] == "sfm_solver":
 
  # SHARED: Compute matches
  if still_working:
-  curr_string = [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_ComputeMatches"),  "-i", os.path.join(user_vars["inputpath"], "sfm_data.json"), "-o", user_vars["inputpath"], "-r", user_vars["ratio"], "-g", user_vars["matrix_filter"], "-f", user_vars["force"] ]
+  curr_string = [os.path.join(OPENMVG_SFM_BIN, "openMVG_main_ComputeMatches"),  "-i", os.path.join(user_vars["inputpath"], "sfm_data.json"), "-o", user_vars["inputpath"], "-r", user_vars["ratio"], "-g", user_vars["matrix_filter"], "-n", user_vars["nearest_matching"], "-f", user_vars["force"] ]
   pMatches = subprocess.Popen(curr_string)
   pMatches.wait()
   still_working = erroroutput(os.path.exists(os.path.join(user_vars["inputpath"], "geometric_matches")), curr_string, "ComputeMatches")
