@@ -18,7 +18,7 @@ make && sudo make install
 cd ..
 
 #CMVS / PMVS (Optional)
-git clone https://github.com/open-anatomy/CMVS-PMVS.git --branch cout
+git clone https://github.com/open-anatomy/CMVS-PMVS.git
 mkdir CMVS-PMVS_build && cd CMVS-PMVS_build
 cmake ../CMVS-PMVS/program
 make && sudo make install
