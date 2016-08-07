@@ -333,24 +333,28 @@ INSTALL(TARGETS openMVG_main_evalQuality DESTINATION bin/)
 ###
 # openMVG Sfm gui
 ###
-SET(BUILD_SFM_GUI OFF CACHE STRING "Set to ON to build the openmvg GUI")
+SET(BUILD_GUI_PREVIEW ON CACHE STRING "Set to OFF to build without the Preview")
+SET(BUILD_SFM_GUI ON CACHE STRING "Set to ON to build the openmvg GUI")
 IF(BUILD_SFM_GUI)
 set(CMAKE_AUTOMOC ON)
 
-find_package(PCL 1.2 REQUIRED)
 find_package(Qt5 REQUIRED Widgets Core)
-
-include_directories(${PCL_INCLUDE_DIRS})
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
 
 set(RESOURCE ${CMAKE_CURRENT_LIST_DIR}/SfM_gui.qrc)
 qt5_add_resources(RESOURCE_ADDED ${RESOURCE})
+IF(BUILD_GUI_PREVIEW)
+find_package(PCL 1.2 REQUIRED)
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 ADD_EXECUTABLE(openMVG_SfM_gui_ply_preview SfM_gui_ply_preview.cpp)
 ADD_EXECUTABLE(openMVG_SfM_gui_obj_preview SfM_gui_obj_preview.cpp)
+ENDIF(BUILD_GUI_PREVIEW)
 ADD_EXECUTABLE(openMVG_SfM_gui main_SfM_gui.cpp SfM_gui.cpp SfM_gui.h ${RESOURCE_ADDED})
+IF(BUILD_GUI_PREVIEW)
 TARGET_LINK_LIBRARIES(openMVG_SfM_gui_obj_preview ${PCL_LIBRARIES})
 TARGET_LINK_LIBRARIES(openMVG_SfM_gui_ply_preview ${PCL_LIBRARIES})
+ENDIF(BUILD_GUI_PREVIEW)
 TARGET_LINK_LIBRARIES(openMVG_SfM_gui Qt5::Widgets)
 
 set(CMAKE_AUTOMOC OFF)

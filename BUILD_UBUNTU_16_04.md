@@ -1,12 +1,8 @@
-# Ubuntu 15.10 building
-These build instructions where modified from [cdcseacave](https://github.com/cdcseacave/openMVS/edit/master/BUILD.md)
-## Ubuntu 16.04 building
-[Ubuntu 16.04 building](https://github.com/open-anatomy/SfM_gui_for_openMVG/blob/master/BUILD_UBUNTU_16_04.md)
+# Ubuntu 16.04 building (without Preview - will be available with VTK 6.3 for Xenial)
 
-```
 #Prepare and empty machine for building:
 sudo apt-get update -qq && sudo apt-get install -qq
-sudo apt-get -y install git subversion cmake libpng-dev libjpeg-dev libtiff-dev libglu1-mesa-dev libeigen3-dev libboost-iostreams-dev libboost-program-options-dev libboost-system-dev libboost-serialization-dev libopencv-dev libcgal-dev libatlas-base-dev libsuitesparse-dev qt5-default libpcl-dev libxxf86vm1 libxxf86vm-dev libxi-dev libxrandr-dev graphviz
+sudo apt-get -y install git subversion cmake libpng-dev libjpeg-dev libtiff-dev libglu1-mesa-dev libeigen3-dev libboost-iostreams-dev libboost-program-options-dev libboost-system-dev libboost-serialization-dev libopencv-dev libcgal-dev libatlas-base-dev libsuitesparse-dev qt5-default libpcl-dev libxxf86vm1 libxxf86vm-dev libxi-dev libxrandr-dev graphviz libcgal-qt5-dev`
 main_path=`pwd`
 
 #VCGLib (Required)
@@ -36,7 +32,7 @@ cd ..
 #OpenMVG + GUI (Required)
 git clone --recursive https://github.com/open-anatomy/SfM_gui_for_openMVG.git openMVG
 mkdir openMVG_build && cd openMVG_build
-cmake -DCMAKE_BUILD_TYPE=RELEASE . ../openMVG/src/ -DCMAKE_INSTALL_PREFIX=$main_path/openMVG_build/openMVG_install -DBUILD_SFM_GUI=ON -DOPENMVG_PMVS_PATH=$main_path/CMVS-PMVS_build
+cmake -DCMAKE_BUILD_TYPE=RELEASE . ../openMVG/src/ -DCMAKE_INSTALL_PREFIX=$main_path/openMVG_build/openMVG_install -DBUILD_SFM_GUI=ON -DOPENMVG_PMVS_PATH=$main_path/CMVS-PMVS_build -DBUILD_GUI_PREVIEW=OFF
 make && make install
 ```
 # Launch from command line:

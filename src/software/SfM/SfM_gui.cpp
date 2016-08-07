@@ -28,19 +28,19 @@ QString parent_path_cut = QDir::currentPath().mid(0,  QDir::currentPath().length
 QString work_dir = parent_path_cut.mid(0, parent_path_cut.lastIndexOf("/")) + "/software/SfM/ImageDataset_SceauxCastle/images/";
 QString outputpath = parent_path_cut.mid(0, parent_path_cut.lastIndexOf("/")) + "/software/SfM/ImageDataset_SceauxCastle/images_out/matches/";
 
-QString initialcommandline_comp_features = "python ../software/SfM/workflow.py step=\"comp_features\" inputpath=\"" + work_dir + "\" outputpath=\"" + outputpath + "\" camera_model=\"3\" descr_pres=\"" + str_desc_pres_standard + "\" descr_meth=\"SIFT\" group_cameramodel=\"1\" use_upright=\"0\" intrinsics=\"0\" force=1";
+QString initialcommandline_comp_features = "python " + parent_path_cut.mid(0, parent_path_cut.lastIndexOf("/")) + "/software/SfM/workflow.py step=\"comp_features\" inputpath=\"" + work_dir + "\" outputpath=\"" + outputpath + "\" camera_model=\"3\" descr_pres=\"" + str_desc_pres_standard + "\" descr_meth=\"SIFT\" group_cameramodel=\"1\" use_upright=\"0\" intrinsics=\"0\" force=1";
 
-QString initialcommandline_sfm_solver = "python ../software/SfM/workflow.py step=\"sfm_solver\" inputpath=\"" + work_dir + "\" imagespath=\"" + work_dir + "\" matchespath=\"" + work_dir + "\" outputpath=\"" + work_dir + "\"  image1=\"\" image2=\"\" solver=\"" + QString::number(PipelineSel_standard) + "\" ratio=\"0.8\" matrix_filter=\"" + str_matrix_filter_standard + "\" camera_model=\"3\" nearest_matching=\"AUTO\" force=1";
+QString initialcommandline_sfm_solver = "python " + parent_path_cut.mid(0, parent_path_cut.lastIndexOf("/")) + "/software/SfM/workflow.py step=\"sfm_solver\" inputpath=\"" + work_dir + "\" imagespath=\"" + work_dir + "\" matchespath=\"" + work_dir + "\" outputpath=\"" + work_dir + "\"  image1=\"\" image2=\"\" solver=\"" + QString::number(PipelineSel_standard) + "\" ratio=\"0.8\" matrix_filter=\"" + str_matrix_filter_standard + "\" camera_model=\"3\" nearest_matching=\"AUTO\" force=1";
 
 QString initialize_commandline_mvs_openMVS()
 {
-    return "python ../software/SfM/workflow.py step=\"openMVS\" inputpath=\"" + work_dir + "\" output_dir=\"" + work_dir + "\" use_densify=\"ON\" use_refine=\"ON\" DY_resolutionlevel=\"" + init_DY_resolutionlevel + "\" RT_use_cglowdensity=\"" + init_RT_use_cglowdensity + "\" RE_scales=\"" + init_RE_scales +  "\" RE_resolutionlevel=\"" + init_RE_resolutionlevel + "\" RE_close_holes=\"" + init_RE_close_holes +  "\" TE_resolutionlevel=\"" + init_TE_resolutionlevel + "\"";
+    return "python " + parent_path_cut.mid(0, parent_path_cut.lastIndexOf("/")) + "/software/SfM/workflow.py step=\"openMVS\" inputpath=\"" + work_dir + "\" output_dir=\"" + work_dir + "\" use_densify=\"ON\" use_refine=\"ON\" DY_resolutionlevel=\"" + init_DY_resolutionlevel + "\" RT_use_cglowdensity=\"" + init_RT_use_cglowdensity + "\" RE_scales=\"" + init_RE_scales +  "\" RE_resolutionlevel=\"" + init_RE_resolutionlevel + "\" RE_close_holes=\"" + init_RE_close_holes +  "\" TE_resolutionlevel=\"" + init_TE_resolutionlevel + "\"";
 }
 QString initialcommandline_mvs_openMVS = initialize_commandline_mvs_openMVS();
 
-QString initialcommandline_mvs_CMVS = "python ../software/SfM/workflow.py step=\"cmvs\" inputpath=\"" + work_dir + "\" output_dir=\"" + work_dir + "\" max_imagecount=\"100\" cpu=\"6\" level=\"1\" csize=\"2\" threshold=\"0.7\" wsize=\"7\" minImageNum=\"3\"";
+QString initialcommandline_mvs_CMVS = "python " + parent_path_cut.mid(0, parent_path_cut.lastIndexOf("/")) + "/software/SfM/workflow.py step=\"cmvs\" inputpath=\"" + work_dir + "\" output_dir=\"" + work_dir + "\" max_imagecount=\"100\" cpu=\"6\" level=\"1\" csize=\"2\" threshold=\"0.7\" wsize=\"7\" minImageNum=\"3\"";
 
-QString initialcommandline_mvs_stand = "python ../software/SfM/workflow.py step=\"curr\" inputpath=\"" + work_dir + "\" output_dir=\"" + work_dir + "\"";
+QString initialcommandline_mvs_stand = "python " + parent_path_cut.mid(0, parent_path_cut.lastIndexOf("/")) + "/software/SfM/workflow.py step=\"curr\" inputpath=\"" + work_dir + "\" output_dir=\"" + work_dir + "\"";
 
 // Define some vars for working on the demo files use - images dir for the check
 QProcess *procDemoDl = new QProcess();
