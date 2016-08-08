@@ -1,8 +1,8 @@
-# Ubuntu 15.10 building
+# Ubuntu building
 These build instructions where modified from [cdcseacave](https://github.com/cdcseacave/openMVS/edit/master/BUILD.md)
 ## Ubuntu 16.04 building
-[Ubuntu 16.04 building](https://github.com/open-anatomy/SfM_gui_for_openMVG/blob/master/BUILD_UBUNTU_16_04.md)
-
+For Ubuntu 16.04 Building see the [Ubuntu 16.04 building page](https://github.com/open-anatomy/SfM_gui_for_openMVG/blob/master/BUILD_UBUNTU_16_04.md)
+## Ubuntu 15.10 building
 ```
 #Prepare and empty machine for building:
 sudo apt-get update -qq && sudo apt-get install -qq
