@@ -38,7 +38,7 @@ cd ..
 #OpenMVG + GUI (Required)
 git clone --recursive https://github.com/open-anatomy/SfM_gui_for_openMVG.git openMVG
 mkdir openMVG_build && cd openMVG_build
-cmake -DCMAKE_BUILD_TYPE=RELEASE . ../openMVG/src/ -DCMAKE_INSTALL_PREFIX=~/openMVG_build/openMVG_install -DBUILD_SFM_GUI=ON -DOPENMVG_PMVS_PATH=~/CMVS-PMVS_build -DBUILD_GUI_PREVIEW=OFF
+cmake -DCMAKE_BUILD_TYPE=RELEASE . ../openMVG/src/ -DCMAKE_INSTALL_PREFIX=$HOME/openMVG_build/openMVG_install -DBUILD_SFM_GUI=ON -DOPENMVG_PMVS_PATH=$HOME/CMVS-PMVS_build -DBUILD_GUI_PREVIEW=OFF
 make && make install
 ```
 # Launch from command line:
