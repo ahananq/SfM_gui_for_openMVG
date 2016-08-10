@@ -203,7 +203,7 @@ elif user_vars["step"] == "pmvs":
    with open(os.path.join(user_vars["inputpath"],"Pipeline_Options.txt"), "r") as text_file:
     pipeline_output = text_file.readline()
    text_file.close()
-   options_display = pipeline_output + "[MVS: PMVS] Densify: " + user_vars["use_densify"] + "; Refine: " + user_vars["use_refine"] + ";\n"
+   options_display = pipeline_output + "[MVS: PMVS];\n"
    # Data output
    print "preview_path " + os.path.join(user_vars["output_dir"], "PMVS/models/pmvs_options.txt.ply end_path");
    print "options_used " + options_display + " end_options_used";
