@@ -7,7 +7,7 @@ The GUI is curently only aimed and tested for Ubuntu 15.10.
 
 For Building from the terminal on Ubuntu please see the [Building Page](https://github.com/open-anatomy/SfM_gui_for_openMVG/blob/master/BUILD.md).
 
-Once the project is built, just run "~/openMVG_build/Linux-x86_64-RELEASE/openMVG_SfM_gui" from the terminal or add a launcher to this location.
+Once the project is built, just run "cd ~/openMVG_build/Linux-x86_64-RELEASE && ./openMVG_SfM_gui" from the terminal or add a launcher to this location.
 
 # Credits / License
 [openMVG](https://github.com/openMVG/openMVG) is developed by Pierre Moulon - see [Authors](https://github.com/openMVG/openMVG/blob/master/AUTHORS). 

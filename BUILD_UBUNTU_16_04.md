@@ -29,7 +29,7 @@ make && sudo make install
 cd ..
 
 #OpenMVS (Recommended)
-git clone https://github.com/open-anatomy/openMVS.git --branch ubuntu_16_04 openMVS
+git clone https://github.com/open-anatomy/openMVS.git openMVS
 mkdir openMVS_build && cd openMVS_build
 cmake . ../openMVS -DCMAKE_BUILD_TYPE=Release -DVCG_DIR="~/vcglib"
 make -j2 && sudo make install
@@ -43,7 +43,7 @@ make && make install
 ```
 # Launch from command line:
 ```
-~/openMVG_build/Linux-x86_64-RELEASE/openMVG_SfM_gui
+cd ~/openMVG_build/Linux-x86_64-RELEASE && ./openMVG_SfM_gui
 ```
 
 # Extra libs (additional libs for openMVG)
