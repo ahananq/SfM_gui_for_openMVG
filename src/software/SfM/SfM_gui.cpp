@@ -27,7 +27,7 @@ QString selfilter_images = "JPEG (*.jpg *.jpeg);;TIFF (*.tif)";
 QString get_openmvg_path(QString parent_path)
 {
 	while (parent_path.endsWith('/')) { parent_path.chop(1); }
-	return parent_path.mid(1, parent_path.lastIndexOf("/"));
+	return parent_path.mid(0, (parent_path.lastIndexOf("/") +1));
 }
 QString openmvg_path = get_openmvg_path(QDir::currentPath());
 QString work_dir = openmvg_path + "software/SfM/ImageDataset_SceauxCastle/images/";
